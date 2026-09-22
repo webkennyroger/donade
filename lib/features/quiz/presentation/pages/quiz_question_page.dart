@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/animations/answer_feedback.dart';
 import '../../../../shared/widgets/ink_shadow.dart';
+import '../../data/question.dart';
 import '../controllers/quiz_controller.dart';
 import '../widgets/answer_option.dart';
 import '../widgets/full_screen_result.dart';
@@ -111,6 +112,7 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
 
     final question = state.currentQuestion!;
     final isCorrect = state.answered && state.selectedIndex == question.correctIndex;
+    final isTablet = MediaQuery.of(context).size.width >= AppDimensions.tabletBreakpoint;
 
     return Scaffold(
       backgroundColor: state.answered
@@ -125,43 +127,16 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
               _Header(onBack: _confirmExit),
               const SizedBox(height: AppDimensions.spaceLg),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      _QuestionCard(
-                        text: question.text,
-                        options: question.options,
-                        correctIndex: question.correctIndex,
-                        selectedIndex: state.selectedIndex,
-                        answered: state.answered,
-                        onSelect: (index) => ref.read(quizControllerProvider.notifier).selectAnswer(index),
-                      ),
-                      Positioned(
-                        top: -18,
-                        right: 24,
-                        child: QuestionNumberBadge(number: state.currentIndex + 1),
-                      ),
-                      Positioned(
-                        bottom: -20,
-                        left: -16,
-                        child: state.answered
-                            ? ResultBadge(isCorrect: isCorrect)
-                            : SvgPicture.asset('$_decor/elemento-splash.svg', width: 90),
-                      ),
-                      Positioned(
-                        bottom: -6,
-                        right: -8,
-                        child: SvgPicture.asset(
-                          state.answered
-                              ? (isCorrect ? '$_donade/donade-acertou.svg' : '$_donade/donade-errou.svg')
-                              : '$_donade/donade-pensando.svg',
-                          height: 190,
+                // Em telas largas, mantemos o mesmo cartão de celular,
+                // só centralizado, em vez de reorganizar o conteúdo.
+                child: isTablet
+                    ? Center(
+                        child: SizedBox(
+                          width: _designWidth,
+                          child: _buildPhoneBody(state, question, isCorrect),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
+                      )
+                    : _buildPhoneBody(state, question, isCorrect),
               ),
             ],
           ),
@@ -169,6 +144,49 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
       ),
     );
   }
+
+  static const _designWidth = 420.0;
+
+  Widget _buildPhoneBody(QuizState state, Question question, bool isCorrect) {
+    return SingleChildScrollView(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _QuestionCard(
+            text: question.text,
+            options: question.options,
+            correctIndex: question.correctIndex,
+            selectedIndex: state.selectedIndex,
+            answered: state.answered,
+            onSelect: (index) => ref.read(quizControllerProvider.notifier).selectAnswer(index),
+          ),
+          Positioned(
+            top: -18,
+            right: 24,
+            child: QuestionNumberBadge(number: state.currentIndex + 1),
+          ),
+          Positioned(
+            bottom: -20,
+            left: -16,
+            child: state.answered
+                ? ResultBadge(isCorrect: isCorrect)
+                : SvgPicture.asset('$_decor/elemento-splash.svg', width: 90),
+          ),
+          Positioned(
+            bottom: -6,
+            right: -8,
+            child: SvgPicture.asset(
+              state.answered
+                  ? (isCorrect ? '$_donade/donade-acertou.svg' : '$_donade/donade-errou.svg')
+                  : '$_donade/donade-pensando.svg',
+              height: 190,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 class _Header extends StatelessWidget {

@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/app.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
 import '../../../shared/animations/fade_slide_in.dart';
 import '../../../shared/animations/fall_and_settle.dart';
 import '../../../shared/widgets/ink_shadow.dart';
@@ -48,146 +49,170 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
   @override
   void didPopNext() => setState(() => _resetKey++);
 
+  void _onSlideComplete(BuildContext context) {
+    context.push('/quiz/${mockQuestions.first.categoryId}');
+  }
+
+  /// Largura de referência do design (tela de celular). Em telas maiores,
+  /// em vez de reorganizar os elementos, mantemos exatamente o mesmo
+  /// cartaz, só centralizado nessa largura.
+  static const _designWidth = 420.0;
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= AppDimensions.tabletBreakpoint;
 
     return Scaffold(
       backgroundColor: const Color(0xFFEDEDED),
       body: SafeArea(
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // Splash decorativo atrás do crachá, sangrando pela borda esquerda.
-            Positioned(
-              top: 30,
-              left: -95,
-              child: FallAndSettle(
-                fallDuration: const Duration(milliseconds: 800),
-                startAngle: -0.3,
-                child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 260),
-              ),
-            ),
-            // Linhas decorativas no canto superior direito.
-            Positioned(
-              top: 85,
-              right: 4,
-              child: FallAndSettle(
-                delay: const Duration(milliseconds: 150),
-                startAngle: 0.25,
-                child: SvgPicture.asset('$_decor/elemento-risco.svg', width: 70),
-              ),
-            ),
-            // Crachá da Defensoria.
-            Positioned(
-              top: 8,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: FadeSlideIn(
-                  child: SvgPicture.asset('$_decor/logo_badge.svg', width: screenWidth * 0.52),
-                ),
-              ),
-            ),
-            // Cartão "Desafio da Dona Dê".
-            Positioned(
-              top: 90,
-              left: 16,
-              right: 16,
-              child: FadeSlideIn(
-                delay: const Duration(milliseconds: 100),
-                child: _ChallengeCard(resetKey: _resetKey),
-              ),
-            ),
-            // Mola decorativa, acima do cabelo e antes do círculo.
-            Positioned(
-              top: 300,
-              left: -50,
-              child: FallAndSettle(
-                delay: const Duration(milliseconds: 250),
-                startAngle: -0.5,
-                child: SvgPicture.asset('$_decor/mola.svg', width: 120),
-              ),
-            ),
-            // Círculo verde/preto + Dona Dê, encostada no canto esquerdo.
-            Positioned(
-              top: 320,
-              left: -10,
-              child: FadeSlideIn(
-                delay: const Duration(milliseconds: 150),
+        child: isTablet
+            ? Center(
                 child: SizedBox(
-                  width: 360,
-                  height: 400,
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned(
-                        bottom: -40,
-                        child: Container(
-                          width: 320,
-                          height: 320,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFF005F27),
-                            border: Border.all(color: AppColors.ink, width: 5),
-                            boxShadow: inkShadow(),
-                          ),
-                        ),
-                      ),
-                      SvgPicture.asset('$_donade/donade-mao-cruzada.svg', height: 340),
-                    ],
-                  ),
+                  width: _designWidth,
+                  child: _buildPhoneBody(context, _designWidth),
                 ),
-              ),
-            ),
-            // Duas estrelas encostadas perto do card, não sobre ele.
-            Positioned(
-              top: 305,
-              right: 30,
-              child: FallAndSettle(
-                delay: const Duration(milliseconds: 350),
-                startAngle: 0.5,
-                child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: 30),
-              ),
-            ),
-            Positioned(
-              top: 328,
-              right: 30,
-              child: FallAndSettle(
-                delay: const Duration(milliseconds: 420),
-                startAngle: -0.4,
-                child: SvgPicture.asset('$_decor/sparkle_small.svg', width: 14),
-              ),
-            ),
-            // Balão de fala: caixa pequena, texto grande. Fica na frente do
-            // círculo verde (por isso vem depois dele na pilha).
-            Positioned(
-              top: 350,
-              right: 8,
-              child: FallAndSettle(
-                delay: const Duration(milliseconds: 300),
-                startAngle: 0.2,
-                child: _SpeechBubble(width: screenWidth * 0.44),
-              ),
-            ),
-          ],
-        ),
+              )
+            : _buildPhoneBody(context, screenWidth),
       ),
     );
   }
+
+  /// Layout original em cartaz vertical, pensado para telas de celular:
+  /// tudo posicionado de forma absoluta, empilhado de cima para baixo.
+  Widget _buildPhoneBody(BuildContext context, double screenWidth) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Splash decorativo atrás do crachá, sangrando pela borda esquerda.
+        Positioned(
+          top: 30,
+          left: -95,
+          child: FallAndSettle(
+            fallDuration: const Duration(milliseconds: 800),
+            startAngle: -0.3,
+            child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 260),
+          ),
+        ),
+        // Linhas decorativas no canto superior direito.
+        Positioned(
+          top: 85,
+          right: 4,
+          child: FallAndSettle(
+            delay: const Duration(milliseconds: 150),
+            startAngle: 0.25,
+            child: SvgPicture.asset('$_decor/elemento-risco.svg', width: 70),
+          ),
+        ),
+        // Crachá da Defensoria.
+        Positioned(
+          top: 8,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: FadeSlideIn(
+              child: SvgPicture.asset('$_decor/logo_badge.svg', width: screenWidth * 0.52),
+            ),
+          ),
+        ),
+        // Cartão "Desafio da Dona Dê".
+        Positioned(
+          top: 90,
+          left: 16,
+          right: 16,
+          child: FadeSlideIn(
+            delay: const Duration(milliseconds: 100),
+            child: _ChallengeCard(resetKey: _resetKey, onSlideComplete: () => _onSlideComplete(context)),
+          ),
+        ),
+        // Mola decorativa, acima do cabelo e antes do círculo.
+        Positioned(
+          top: 300,
+          left: -50,
+          child: FallAndSettle(
+            delay: const Duration(milliseconds: 250),
+            startAngle: -0.5,
+            child: SvgPicture.asset('$_decor/mola.svg', width: 120),
+          ),
+        ),
+        // Círculo verde/preto + Dona Dê, encostada no canto esquerdo.
+        Positioned(
+          top: 320,
+          left: -10,
+          child: FadeSlideIn(
+            delay: const Duration(milliseconds: 150),
+            child: SizedBox(
+              width: 360,
+              height: 400,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    bottom: -40,
+                    child: Container(
+                      width: 320,
+                      height: 320,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF005F27),
+                        border: Border.all(color: AppColors.ink, width: 5),
+                        boxShadow: inkShadow(),
+                      ),
+                    ),
+                  ),
+                  SvgPicture.asset('$_donade/donade-mao-cruzada.svg', height: 340),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Duas estrelas encostadas perto do card, não sobre ele.
+        Positioned(
+          top: 305,
+          right: 30,
+          child: FallAndSettle(
+            delay: const Duration(milliseconds: 350),
+            startAngle: 0.5,
+            child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: 30),
+          ),
+        ),
+        Positioned(
+          top: 328,
+          right: 30,
+          child: FallAndSettle(
+            delay: const Duration(milliseconds: 420),
+            startAngle: -0.4,
+            child: SvgPicture.asset('$_decor/sparkle_small.svg', width: 14),
+          ),
+        ),
+        // Balão de fala: caixa pequena, texto grande. Fica na frente do
+        // círculo verde (por isso vem depois dele na pilha).
+        Positioned(
+          top: 350,
+          right: 8,
+          child: FallAndSettle(
+            delay: const Duration(milliseconds: 300),
+            startAngle: 0.2,
+            child: _SpeechBubble(width: screenWidth * 0.44),
+          ),
+        ),
+      ],
+    );
+  }
+
 }
 
 class _ChallengeCard extends StatelessWidget {
-  const _ChallengeCard({required this.resetKey});
+  const _ChallengeCard({required this.resetKey, required this.onSlideComplete});
 
   final int resetKey;
+  final VoidCallback onSlideComplete;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.ink, width: 2),
@@ -246,7 +271,7 @@ class _ChallengeCard extends StatelessWidget {
                 SlideToStart(
                   key: ValueKey(resetKey),
                   label: 'DESLIZE PARA COMEÇAR',
-                  onComplete: () => context.push('/quiz/${mockQuestions.first.categoryId}'),
+                  onComplete: onSlideComplete,
                 ),
               ],
             ),

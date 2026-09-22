@@ -14,7 +14,13 @@ Future<void> _settle(WidgetTester tester, [Duration duration = const Duration(mi
 }
 
 void main() {
+  // Estes testes cobrem o fluxo de celular; sem isso, o tamanho padrão da
+  // superfície de teste (800x600) é largo o bastante para acionar o layout
+  // de tablet, que usa alturas fixas pensadas para telas bem mais altas.
   testWidgets('Onboarding mostra a chamada para começar o quiz', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(412, 915);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(const ProviderScope(child: QuizDonaDeApp()));
     await _settle(tester);
 
@@ -26,6 +32,9 @@ void main() {
     // O GoRouter é um singleton compartilhado entre os testes deste arquivo;
     // garantimos que cada teste comece na Onboarding.
     router.go('/');
+    tester.view.physicalSize = const Size(412, 915);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(const ProviderScope(child: QuizDonaDeApp()));
     await _settle(tester);
 
@@ -37,6 +46,9 @@ void main() {
 
   testWidgets('Sair do quiz e voltar reseta o slide to start', (WidgetTester tester) async {
     router.go('/');
+    tester.view.physicalSize = const Size(412, 915);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(const ProviderScope(child: QuizDonaDeApp()));
     await _settle(tester);
 
@@ -60,6 +72,9 @@ void main() {
 
   testWidgets('Responder certo mostra a tela cheia e avança para a próxima pergunta', (WidgetTester tester) async {
     router.go('/');
+    tester.view.physicalSize = const Size(412, 915);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(const ProviderScope(child: QuizDonaDeApp()));
     await _settle(tester);
 
