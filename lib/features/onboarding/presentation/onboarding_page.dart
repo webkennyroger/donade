@@ -1,0 +1,291 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
+import '../../../app/app.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../shared/animations/fade_slide_in.dart';
+import '../../../shared/animations/fall_and_settle.dart';
+import '../../../shared/widgets/ink_shadow.dart';
+import '../../../shared/widgets/slide_to_start.dart';
+import '../../quiz/data/mock_questions.dart';
+
+const _decor = 'assets/images/decorations';
+const _donade = 'assets/images/donade';
+
+/// Tela de abertura do app: cartaz estilo "quadrinho" com o cartão do
+/// desafio, a Dona Dê e o balão de fala, terminando no slider para começar.
+class OnboardingPage extends StatefulWidget {
+  const OnboardingPage({super.key});
+
+  @override
+  State<OnboardingPage> createState() => _OnboardingPageState();
+}
+
+class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
+  /// Muda a cada vez que esta tela volta a ficar visível, forçando o
+  /// SlideToStart a ser recriado do zero (sem isso, ele ficaria preso no
+  /// estado "concluído" da última vez que o usuário arrastou).
+  int _resetKey = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute<void>) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPush() => setState(() => _resetKey++);
+
+  @override
+  void didPopNext() => setState(() => _resetKey++);
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFEDEDED),
+      body: SafeArea(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Splash decorativo atrás do crachá, sangrando pela borda esquerda.
+            Positioned(
+              top: 30,
+              left: -95,
+              child: FallAndSettle(
+                fallDuration: const Duration(milliseconds: 800),
+                startAngle: -0.3,
+                child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 260),
+              ),
+            ),
+            // Linhas decorativas no canto superior direito.
+            Positioned(
+              top: 85,
+              right: 4,
+              child: FallAndSettle(
+                delay: const Duration(milliseconds: 150),
+                startAngle: 0.25,
+                child: SvgPicture.asset('$_decor/elemento-risco.svg', width: 70),
+              ),
+            ),
+            // Crachá da Defensoria.
+            Positioned(
+              top: 8,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: FadeSlideIn(
+                  child: SvgPicture.asset('$_decor/logo_badge.svg', width: screenWidth * 0.52),
+                ),
+              ),
+            ),
+            // Cartão "Desafio da Dona Dê".
+            Positioned(
+              top: 90,
+              left: 16,
+              right: 16,
+              child: FadeSlideIn(
+                delay: const Duration(milliseconds: 100),
+                child: _ChallengeCard(resetKey: _resetKey),
+              ),
+            ),
+            // Mola decorativa, acima do cabelo e antes do círculo.
+            Positioned(
+              top: 300,
+              left: -50,
+              child: FallAndSettle(
+                delay: const Duration(milliseconds: 250),
+                startAngle: -0.5,
+                child: SvgPicture.asset('$_decor/mola.svg', width: 120),
+              ),
+            ),
+            // Círculo verde/preto + Dona Dê, encostada no canto esquerdo.
+            Positioned(
+              top: 320,
+              left: -10,
+              child: FadeSlideIn(
+                delay: const Duration(milliseconds: 150),
+                child: SizedBox(
+                  width: 360,
+                  height: 400,
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    clipBehavior: Clip.none,
+                    children: [
+                      Positioned(
+                        bottom: -40,
+                        child: Container(
+                          width: 320,
+                          height: 320,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF005F27),
+                            border: Border.all(color: AppColors.ink, width: 5),
+                            boxShadow: inkShadow(),
+                          ),
+                        ),
+                      ),
+                      SvgPicture.asset('$_donade/donade-mao-cruzada.svg', height: 340),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Duas estrelas encostadas perto do card, não sobre ele.
+            Positioned(
+              top: 305,
+              right: 30,
+              child: FallAndSettle(
+                delay: const Duration(milliseconds: 350),
+                startAngle: 0.5,
+                child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: 30),
+              ),
+            ),
+            Positioned(
+              top: 328,
+              right: 30,
+              child: FallAndSettle(
+                delay: const Duration(milliseconds: 420),
+                startAngle: -0.4,
+                child: SvgPicture.asset('$_decor/sparkle_small.svg', width: 14),
+              ),
+            ),
+            // Balão de fala: caixa pequena, texto grande. Fica na frente do
+            // círculo verde (por isso vem depois dele na pilha).
+            Positioned(
+              top: 350,
+              right: 8,
+              child: FallAndSettle(
+                delay: const Duration(milliseconds: 300),
+                startAngle: 0.2,
+                child: _SpeechBubble(width: screenWidth * 0.44),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChallengeCard extends StatelessWidget {
+  const _ChallengeCard({required this.resetKey});
+
+  final int resetKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.ink, width: 2),
+        boxShadow: inkShadow(),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: const BoxDecoration(
+              color: Color(0xFF005F27),
+              border: Border(bottom: BorderSide(color: AppColors.ink, width: 2)),
+            ),
+            child: const Text(
+              'JOGO DE PERGUNTAS E RESPOSTAS',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'NotoSans',
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  'DESAFIO DA',
+                  style: TextStyle(
+                    fontFamily: 'NotoSans',
+                    color: AppColors.ink,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const Text(
+                  'Dona Dê',
+                  style: TextStyle(
+                    fontFamily: 'Magic',
+                    color: Color(0xFF005F27),
+                    fontSize: 40,
+                    fontWeight: FontWeight.w700,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SlideToStart(
+                  key: ValueKey(resetKey),
+                  label: 'DESLIZE PARA COMEÇAR',
+                  onComplete: () => context.push('/quiz/${mockQuestions.first.categoryId}'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SpeechBubble extends StatelessWidget {
+  const _SpeechBubble({required this.width});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          SvgPicture.asset('$_decor/speech_bubble.svg', width: width),
+          Padding(
+            padding: EdgeInsets.only(top: width * 0.14, left: width * 0.12, right: width * 0.12),
+            child: const Text(
+              'Responda e concorra a prêmios!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'NotoSans',
+                color: AppColors.ink,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                height: 1.15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
