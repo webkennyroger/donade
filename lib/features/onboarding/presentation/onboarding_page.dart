@@ -142,8 +142,8 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         ),
         // Mola decorativa, encostada no canto do card, acima do cabelo.
         Positioned(
-          top: 282,
-          left: -50,
+          top: 382,
+          left: -100,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 250),
             startAngle: -0.5,
@@ -153,7 +153,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         // Círculo verde/preto + Dona Dê, encostada no canto esquerdo.
         Positioned(
           top: 320,
-          left: -10,
+          left: -30,
           child: FadeSlideIn(
             delay: const Duration(milliseconds: 150),
             child: SizedBox(
@@ -164,7 +164,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
                 clipBehavior: Clip.none,
                 children: [
                   Positioned(
-                    bottom: -40,
+                    bottom: -80,
                     child: Container(
                       width: 320,
                       height: 320,
@@ -178,7 +178,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
                   ),
                   SvgPicture.asset(
                     '$_donade/donade-mao-cruzada.svg',
-                    height: 400,
+                    height: 300,
                   ),
                 ],
               ),
@@ -270,8 +270,8 @@ class _ChallengeCard extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'NotoSans',
                     color: AppColors.ink,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 44,
+                    fontWeight: FontWeight.w900,
                     height: 1,
                     letterSpacing: -0.5,
                   ),
@@ -280,9 +280,9 @@ class _ChallengeCard extends StatelessWidget {
                   'Dona Dê',
                   style: TextStyle(
                     fontFamily: 'Magic',
-                    color: Color(0xFF005F27),
-                    fontSize: 40,
-                    fontWeight: FontWeight.w700,
+                    color: Color.fromARGB(255, 1, 156, 66),
+                    fontSize: 45,
+                    fontWeight: FontWeight.w900,
                     height: 1.3,
                   ),
                 ),
@@ -316,19 +316,19 @@ class _SpeechBubble extends StatelessWidget {
           SvgPicture.asset('$_decor/speech_bubble.svg', width: width),
           Padding(
             padding: EdgeInsets.only(
-              top: width * 0.14,
+              top: width * 0.10,
               left: width * 0.12,
               right: width * 0.12,
             ),
             child: const Text(
-              'Responda e concorra a prêmios!',
+              'Responda \ne concorra \na prêmios!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'NotoSans',
                 color: AppColors.ink,
-                fontSize: 18,
+                fontSize: 25,
                 fontWeight: FontWeight.w500,
-                height: 1.15,
+                height: 1,
               ),
             ),
           ),
