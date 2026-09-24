@@ -12,7 +12,8 @@ class SlideToStart extends StatefulWidget {
   final String label;
   final VoidCallback onComplete;
 
-  static const _handleSize = 52.0;
+  static const _handleSize = 44.0;
+  static const _trackHeight = 52.0;
   static const _completeThreshold = 0.8;
 
   @override
@@ -56,7 +57,7 @@ class _SlideToStartState extends State<SlideToStart> with SingleTickerProviderSt
         final progress = maxDrag == 0 ? 0.0 : _dragX / maxDrag;
 
         return Container(
-          height: 64,
+          height: SlideToStart._trackHeight,
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(AppDimensions.radiusPill),
@@ -72,22 +73,25 @@ class _SlideToStartState extends State<SlideToStart> with SingleTickerProviderSt
                 AnimatedContainer(
                   duration: _completed ? const Duration(milliseconds: 250) : Duration.zero,
                   width: _dragX + SlideToStart._handleSize,
-                  height: 64,
+                  height: SlideToStart._trackHeight,
                   color: AppColors.primaryLight,
                 ),
               Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.only(left: SlideToStart._handleSize, right: 16),
+                  padding: const EdgeInsets.only(left: SlideToStart._handleSize, right: 14),
                   child: Opacity(
                     opacity: (1 - progress).clamp(0.0, 1.0),
                     child: Row(
                       children: [
                         Expanded(
                           child: Center(
-                            child: Text(widget.label, style: AppTextStyles.button.copyWith(color: AppColors.textPrimary)),
+                            child: Text(
+                              widget.label,
+                              style: AppTextStyles.button.copyWith(color: AppColors.textPrimary, fontSize: 14),
+                            ),
                           ),
                         ),
-                        const AppIcon(name: 'chevrons_right', size: 18, color: AppColors.primary),
+                        const AppIcon(name: 'chevrons_right', size: 15, color: AppColors.primary),
                       ],
                     ),
                   ),
@@ -101,8 +105,8 @@ class _SlideToStartState extends State<SlideToStart> with SingleTickerProviderSt
                   onHorizontalDragUpdate: (details) => _onDragUpdate(details, trackWidth),
                   onHorizontalDragEnd: (_) => _onDragEnd(trackWidth),
                   child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: AppIcon(name: 'arrow_right', size: SlideToStart._handleSize - 12),
+                    padding: const EdgeInsets.all(5),
+                    child: AppIcon(name: 'arrow_right', size: SlideToStart._handleSize - 10),
                   ),
                 ),
               ),

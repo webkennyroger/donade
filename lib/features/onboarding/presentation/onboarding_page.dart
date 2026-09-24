@@ -53,10 +53,12 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
     context.push('/quiz/${mockQuestions.first.categoryId}');
   }
 
-  /// Largura de referência do design (tela de celular). Em telas maiores,
-  /// em vez de reorganizar os elementos, mantemos exatamente o mesmo
-  /// cartaz, só centralizado nessa largura.
+  /// Tamanho de referência do design (tela de celular): a altura cobre só
+  /// até onde os elementos realmente terminam (mão da personagem em
+  /// y=720) — sobrar altura aqui empurra tudo pra cima e encolhe o
+  /// desenho quando o FittedBox escala para telas de tablet.
   static const _designWidth = 420.0;
+  static const _designHeight = 726.0;
 
   @override
   Widget build(BuildContext context) {
@@ -66,11 +68,18 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
     return Scaffold(
       backgroundColor: const Color(0xFFEDEDED),
       body: SafeArea(
+        // Em telas grandes, em vez de só centralizar numa faixa estreita
+        // (o que deixa um vão vazio embaixo), o cartaz inteiro escala como
+        // um poster até preencher a altura ou largura disponível.
         child: isTablet
-            ? Center(
-                child: SizedBox(
-                  width: _designWidth,
-                  child: _buildPhoneBody(context, _designWidth),
+            ? SizedBox.expand(
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: SizedBox(
+                    width: _designWidth,
+                    height: _designHeight,
+                    child: _buildPhoneBody(context, _designWidth),
+                  ),
                 ),
               )
             : _buildPhoneBody(context, screenWidth),
@@ -91,7 +100,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
           child: FallAndSettle(
             fallDuration: const Duration(milliseconds: 800),
             startAngle: -0.3,
-            child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 260),
+            child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 360),
           ),
         ),
         // Linhas decorativas no canto superior direito.
@@ -111,7 +120,10 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
           right: 0,
           child: Center(
             child: FadeSlideIn(
-              child: SvgPicture.asset('$_decor/logo_badge.svg', width: screenWidth * 0.52),
+              child: SvgPicture.asset(
+                '$_decor/logo_badge.svg',
+                width: screenWidth * 0.52,
+              ),
             ),
           ),
         ),
@@ -122,17 +134,20 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
           right: 16,
           child: FadeSlideIn(
             delay: const Duration(milliseconds: 100),
-            child: _ChallengeCard(resetKey: _resetKey, onSlideComplete: () => _onSlideComplete(context)),
+            child: _ChallengeCard(
+              resetKey: _resetKey,
+              onSlideComplete: () => _onSlideComplete(context),
+            ),
           ),
         ),
-        // Mola decorativa, acima do cabelo e antes do círculo.
+        // Mola decorativa, encostada no canto do card, acima do cabelo.
         Positioned(
-          top: 300,
+          top: 282,
           left: -50,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 250),
             startAngle: -0.5,
-            child: SvgPicture.asset('$_decor/mola.svg', width: 120),
+            child: SvgPicture.asset('$_decor/mola.svg', width: 108),
           ),
         ),
         // Círculo verde/preto + Dona Dê, encostada no canto esquerdo.
@@ -161,7 +176,10 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
                       ),
                     ),
                   ),
-                  SvgPicture.asset('$_donade/donade-mao-cruzada.svg', height: 340),
+                  SvgPicture.asset(
+                    '$_donade/donade-mao-cruzada.svg',
+                    height: 400,
+                  ),
                 ],
               ),
             ),
@@ -200,7 +218,6 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
       ],
     );
   }
-
 }
 
 class _ChallengeCard extends StatelessWidget {
@@ -227,7 +244,9 @@ class _ChallengeCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: const BoxDecoration(
               color: Color(0xFF005F27),
-              border: Border(bottom: BorderSide(color: AppColors.ink, width: 2)),
+              border: Border(
+                bottom: BorderSide(color: AppColors.ink, width: 2),
+              ),
             ),
             child: const Text(
               'JOGO DE PERGUNTAS E RESPOSTAS',
@@ -296,7 +315,11 @@ class _SpeechBubble extends StatelessWidget {
         children: [
           SvgPicture.asset('$_decor/speech_bubble.svg', width: width),
           Padding(
-            padding: EdgeInsets.only(top: width * 0.14, left: width * 0.12, right: width * 0.12),
+            padding: EdgeInsets.only(
+              top: width * 0.14,
+              left: width * 0.12,
+              right: width * 0.12,
+            ),
             child: const Text(
               'Responda e concorra a prêmios!',
               textAlign: TextAlign.center,
