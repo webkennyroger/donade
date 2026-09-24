@@ -43,7 +43,7 @@ class QuestionNumberBadge extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'NotoSans',
                 fontWeight: FontWeight.w700,
-                fontSize: size * 0.5,
+                fontSize: size * 0.56,
                 color: AppColors.ink,
                 height: 1,
               ),

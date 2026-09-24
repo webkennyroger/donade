@@ -145,45 +145,78 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
     );
   }
 
-  static const _designWidth = 420.0;
+  static const _designWidth = 380.0;
 
   Widget _buildPhoneBody(QuizState state, Question question, bool isCorrect) {
-    return SingleChildScrollView(
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          _QuestionCard(
-            text: question.text,
-            options: question.options,
-            correctIndex: question.correctIndex,
-            selectedIndex: state.selectedIndex,
-            answered: state.answered,
-            onSelect: (index) => ref.read(quizControllerProvider.notifier).selectAnswer(index),
-          ),
-          Positioned(
-            top: -18,
-            right: 24,
-            child: QuestionNumberBadge(number: state.currentIndex + 1),
-          ),
-          Positioned(
-            bottom: -20,
-            left: -16,
-            child: state.answered
-                ? ResultBadge(isCorrect: isCorrect)
-                : SvgPicture.asset('$_decor/elemento-splash.svg', width: 90),
-          ),
-          Positioned(
-            bottom: -6,
-            right: -8,
-            child: SvgPicture.asset(
-              state.answered
-                  ? (isCorrect ? '$_donade/donade-acertou.svg' : '$_donade/donade-errou.svg')
-                  : '$_donade/donade-pensando.svg',
-              height: 190,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          // Centraliza verticalmente quando o cartão é mais baixo que a
+          // tela (tablets, perguntas curtas); ainda rola se for mais alto.
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  if (!state.answered)
+                    Positioned(
+                      bottom: -200,
+                      left: -200,
+                      child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 200),
+                    ),
+                  _QuestionCard(
+                    text: question.text,
+                    options: question.options,
+                    correctIndex: question.correctIndex,
+                    selectedIndex: state.selectedIndex,
+                    answered: state.answered,
+                    onSelect: (index) => ref.read(quizControllerProvider.notifier).selectAnswer(index),
+                  ),
+                  // Padrão de bolinhas saindo do canto superior esquerdo do
+                  // cartão, atrás da barra verde.
+                  Positioned(
+                    top: -10,
+                    left: -10,
+                    child: SvgPicture.asset('$_decor/circulos.svg', width: 44),
+                  ),
+                  Positioned(
+                    top: -24,
+                    right: 24,
+                    child: QuestionNumberBadge(number: state.currentIndex + 1, size: 92),
+                  ),
+                  Positioned(
+                    top: 72,
+                    right: -14,
+                    child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: 32),
+                  ),
+                  Positioned(
+                    top: 108,
+                    right: 6,
+                    child: SvgPicture.asset('$_decor/sparkle_small.svg', width: 18),
+                  ),
+                  if (state.answered)
+                    Positioned(
+                      bottom: -20,
+                      left: -16,
+                      child: ResultBadge(isCorrect: isCorrect),
+                    ),
+                  Positioned(
+                    bottom: -410,
+                    right: -150,
+                    child: SvgPicture.asset(
+                      state.answered
+                          ? (isCorrect ? '$_donade/donade-acertou.svg' : '$_donade/donade-errou.svg')
+                          : '$_donade/donade-pensando.svg',
+                      height: 600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -196,27 +229,34 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        IconButton(
-          onPressed: onBack,
-          icon: const Icon(Icons.arrow_back, color: AppColors.ink),
-        ),
-        const SizedBox(width: AppDimensions.spaceXs),
-        RichText(
-          text: const TextSpan(
-            style: TextStyle(fontFamily: 'NotoSans', fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.ink),
-            children: [
-              TextSpan(text: 'DESAFIO DA\n'),
-              TextSpan(
-                text: 'Dona Dê',
-                style: TextStyle(fontFamily: 'Magic', fontWeight: FontWeight.w400, fontSize: 22, color: Color(0xFF005F27)),
+        Row(
+          children: [
+            IconButton(
+              onPressed: onBack,
+              icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+            ),
+            const SizedBox(width: AppDimensions.spaceXs),
+            RichText(
+              text: const TextSpan(
+                style: TextStyle(fontFamily: 'NotoSans', fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.ink),
+                children: [
+                  TextSpan(text: 'DESAFIO DA\n'),
+                  TextSpan(
+                    text: 'Dona Dê',
+                    style: TextStyle(fontFamily: 'Magic', fontWeight: FontWeight.w900, fontSize: 22, color: Color(0xFF005F27)),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            const Spacer(),
+            SvgPicture.asset('$_decor/logo_badge.svg', width: 150),
+          ],
         ),
-        const Spacer(),
-        SvgPicture.asset('$_decor/logo_badge.svg', width: 120),
+        const SizedBox(height: AppDimensions.spaceMd),
+        Container(height: 2, color: AppColors.ink),
       ],
     );
   }
@@ -260,50 +300,44 @@ class _QuestionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Stack(
-            children: [
-              Positioned(
-                top: 6,
-                left: 12,
-                child: SvgPicture.asset('$_decor/circulos.svg', width: 40),
+          Container(
+            padding: const EdgeInsets.fromLTRB(56, 14, 90, 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFF005F27),
+              border: Border(bottom: BorderSide(color: AppColors.ink, width: 2)),
+            ),
+            child: const Text(
+              'PERGUNTA',
+              style: TextStyle(
+                fontFamily: 'NotoSans',
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.w900,
+                
               ),
-              Container(
-                padding: const EdgeInsets.fromLTRB(56, 14, 90, 14),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF005F27),
-                  border: Border(bottom: BorderSide(color: AppColors.ink, width: 2)),
-                ),
-                child: const Text(
-                  'PERGUNTA',
-                  style: TextStyle(
-                    fontFamily: 'NotoSans',
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontFamily: 'NotoSans',
+                fontSize: 17,
+                color: AppColors.ink,
+                height: 1.3,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.spaceXl),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 0, 6, 400),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  text,
-                  style: const TextStyle(
-                    fontFamily: 'NotoSans',
-                    fontSize: 17,
-                    color: AppColors.ink,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: AppDimensions.spaceLg),
                 for (var index = 0; index < options.length; index++)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: AppDimensions.spaceMd),
+                    padding: const EdgeInsets.only(bottom: AppDimensions.spaceLg),
                     child: AnswerOption(
                       label: options[index],
                       optionLetter: String.fromCharCode(65 + index),
