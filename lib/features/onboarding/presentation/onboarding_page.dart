@@ -105,8 +105,8 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         ),
         // Linhas decorativas no canto superior direito.
         Positioned(
-          top: 85,
-          right: 4,
+          top: 25,
+          right: -10,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 150),
             startAngle: 0.25,
@@ -158,7 +158,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
             delay: const Duration(milliseconds: 150),
             child: SizedBox(
               width: 360,
-              height: 400,
+              height: 410,
               child: Stack(
                 alignment: Alignment.bottomCenter,
                 clipBehavior: Clip.none,
@@ -185,9 +185,9 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
             ),
           ),
         ),
-        // Duas estrelas encostadas perto do card, não sobre ele.
+        // Duas estrelas abaixo do card, sem tocar a borda dele.
         Positioned(
-          top: 305,
+          top: 340,
           right: 30,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 350),
@@ -196,7 +196,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
           ),
         ),
         Positioned(
-          top: 328,
+          top: 363,
           right: 30,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 420),
@@ -207,7 +207,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         // Balão de fala: caixa pequena, texto grande. Fica na frente do
         // círculo verde (por isso vem depois dele na pilha).
         Positioned(
-          top: 350,
+          top: 400,
           right: 8,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 300),
@@ -309,7 +309,7 @@ class _SpeechBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: width,
+      width: width ,
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
