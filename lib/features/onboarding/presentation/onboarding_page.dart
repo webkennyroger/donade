@@ -95,17 +95,17 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
       children: [
         // Splash decorativo atrás do crachá, sangrando pela borda esquerda.
         Positioned(
-          top: 30,
+          top: 50,
           left: -95,
           child: FallAndSettle(
             fallDuration: const Duration(milliseconds: 800),
             startAngle: -0.3,
-            child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 360),
+            child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 300),
           ),
         ),
         // Linhas decorativas no canto superior direito.
         Positioned(
-          top: 25,
+          top: 65,
           right: -10,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 150),
@@ -115,7 +115,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         ),
         // Crachá da Defensoria.
         Positioned(
-          top: 8,
+          top: 15,
           left: 0,
           right: 0,
           child: Center(
@@ -129,7 +129,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         ),
         // Cartão "Desafio da Dona Dê".
         Positioned(
-          top: 90,
+          top: 130,
           left: 16,
           right: 16,
           child: FadeSlideIn(
@@ -142,8 +142,8 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         ),
         // Mola decorativa, encostada no canto do card, acima do cabelo.
         Positioned(
-          top: 382,
-          left: -100,
+          top: 350,
+          left: -110,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 250),
             startAngle: -0.5,
@@ -153,7 +153,7 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         // Círculo verde/preto + Dona Dê, encostada no canto esquerdo.
         Positioned(
           top: 320,
-          left: -30,
+          left: -80,
           child: FadeSlideIn(
             delay: const Duration(milliseconds: 150),
             child: SizedBox(
@@ -164,10 +164,10 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
                 clipBehavior: Clip.none,
                 children: [
                   Positioned(
-                    bottom: -80,
+                    bottom: -120,
                     child: Container(
-                      width: 320,
-                      height: 320,
+                      width: 360,
+                      height: 360,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: const Color(0xFF005F27),
@@ -187,8 +187,8 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         ),
         // Duas estrelas abaixo do card, sem tocar a borda dele.
         Positioned(
-          top: 340,
-          right: 30,
+          top: 370,
+          right: -10,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 350),
             startAngle: 0.5,
@@ -196,8 +196,8 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
           ),
         ),
         Positioned(
-          top: 363,
-          right: 30,
+          top: 400,
+          right: -10,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 420),
             startAngle: -0.4,
@@ -207,12 +207,12 @@ class _OnboardingPageState extends State<OnboardingPage> with RouteAware {
         // Balão de fala: caixa pequena, texto grande. Fica na frente do
         // círculo verde (por isso vem depois dele na pilha).
         Positioned(
-          top: 400,
-          right: 8,
+          top: 430,
+          right: 60,
           child: FallAndSettle(
             delay: const Duration(milliseconds: 300),
             startAngle: 0.2,
-            child: _SpeechBubble(width: screenWidth * 0.44),
+            child: _SpeechBubble(width: screenWidth * 0.40),
           ),
         ),
       ],
@@ -326,7 +326,7 @@ class _SpeechBubble extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'NotoSans',
                 color: AppColors.ink,
-                fontSize: 25,
+                fontSize: 24,
                 fontWeight: FontWeight.w500,
                 height: 1,
               ),
