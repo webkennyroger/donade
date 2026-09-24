@@ -81,18 +81,16 @@ class _SlideToStartState extends State<SlideToStart> with SingleTickerProviderSt
                   padding: const EdgeInsets.only(left: SlideToStart._handleSize, right: 14),
                   child: Opacity(
                     opacity: (1 - progress).clamp(0.0, 1.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              widget.label,
-                              style: AppTextStyles.button.copyWith(color: AppColors.textPrimary, fontSize: 14),
-                            ),
-                          ),
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          widget.label,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: AppTextStyles.button.copyWith(color: AppColors.textPrimary, fontSize: 14),
                         ),
-                        const AppIcon(name: 'chevrons_right', size: 15, color: AppColors.primary),
-                      ],
+                      ),
                     ),
                   ),
                 ),

@@ -31,6 +31,21 @@
 
   <title>quiz_dona_de</title>
   <link rel="manifest" href="manifest.json">
+
+  <!--
+    Sem isso, arrastar sobre uma imagem/SVG (ex: o slide-to-start) pode
+    disparar o "arrastar imagem" nativo do navegador (Chrome/Safari),
+    mostrando um preview/alt-text por cima do app. Isso só existe dentro
+    de um navegador — não acontece no app nativo instalado.
+  -->
+  <style>
+    html, body, canvas, img, svg {
+      -webkit-user-drag: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+  </style>
 </head>
 <body>
   <!--
