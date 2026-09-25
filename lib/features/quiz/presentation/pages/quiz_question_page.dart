@@ -17,6 +17,16 @@ import '../widgets/result_badge.dart';
 const _decor = 'assets/images/decorations';
 const _donade = 'assets/images/donade';
 
+// Largura e altura do cartão, isoladas de propósito: mude os dois valores
+// livremente, sem afetar mais nada. Isso funciona porque:
+// - Largura: os elementos do canto (círculo, estrelas, splash, Dona Dê) são
+//   ancorados via `right:`/`left:` relativos à própria borda do cartão,
+//   então acompanham a largura automaticamente.
+// - Altura: a Dona Dê é ancorada via `top:` (não `bottom:`), então não se
+//   move quando `_cardExtraBottomSpace` muda.
+const _cardWidth = 340.0;
+const _cardExtraBottomSpace = 400.0;
+
 /// Quanto tempo o cartão fica com a alternativa colorida antes da tela
 /// cheia de "Você acertou/errou" aparecer, e por quanto tempo ela fica.
 const _kRevealDelay = Duration(milliseconds: 900);
@@ -132,7 +142,7 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
                 child: isTablet
                     ? Center(
                         child: SizedBox(
-                          width: _designWidth,
+                          width: _cardWidth,
                           child: _buildPhoneBody(state, question, isCorrect),
                         ),
                       )
@@ -144,8 +154,6 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
       ),
     );
   }
-
-  static const _designWidth = 380.0;
 
   Widget _buildPhoneBody(QuizState state, Question question, bool isCorrect) {
     return LayoutBuilder(
@@ -160,11 +168,14 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
                 clipBehavior: Clip.none,
                 children: [
                   if (!state.answered)
+                    // O splash de bolinhas atrás do cartão, que só aparece antes de
+                    // responder. Ele é grande e fica parcialmente fora da tela.
                     Positioned(
-                      bottom: -200,
+                      bottom: -30,
                       left: -200,
                       child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 200),
                     ),
+                    // O cartão da pergunta, com o número da pergunta e as opções.
                   _QuestionCard(
                     text: question.text,
                     options: question.options,
@@ -180,20 +191,26 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
                     left: -10,
                     child: SvgPicture.asset('$_decor/circulos.svg', width: 44),
                   ),
+                  // O número da pergunta fica no canto superior direito do cartão,
+                  // mas fora do cartão, em cima da barra verde. A posição é
+                  // ajustada para que o círculo fique centrado na barra verde.
                   Positioned(
-                    top: -24,
-                    right: 24,
-                    child: QuestionNumberBadge(number: state.currentIndex + 1, size: 92),
+                    top: -30,
+                    right: -60,
+                    child: QuestionNumberBadge(number: state.currentIndex + 1, size: 112),
                   ),
+                  // A pequena vem primeiro (fica atrás); a maior vem depois
+                  // (fica na frente, por cima), as duas do lado de fora do
+                  // cartão, em diagonal a partir do círculo do número.
                   Positioned(
-                    top: 72,
-                    right: -14,
-                    child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: 32),
-                  ),
-                  Positioned(
-                    top: 108,
-                    right: 6,
+                    top: 140,
+                    right: -50,
                     child: SvgPicture.asset('$_decor/sparkle_small.svg', width: 18),
+                  ),
+                  Positioned(
+                    top: 100,
+                    right: -50,
+                    child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: 34),
                   ),
                   if (state.answered)
                     Positioned(
@@ -201,14 +218,17 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
                       left: -16,
                       child: ResultBadge(isCorrect: isCorrect),
                     ),
+                  // Ancorada a partir do topo (não do fundo) de propósito:
+                  // assim ela não se move quando o espaço vazio embaixo das
+                  // opções (o padding do `_QuestionCard`) for ajustado.
                   Positioned(
-                    bottom: -410,
-                    right: -150,
+                    top: 360,
+                    right: -30,
                     child: SvgPicture.asset(
                       state.answered
                           ? (isCorrect ? '$_donade/donade-acertou.svg' : '$_donade/donade-errou.svg')
                           : '$_donade/donade-pensando.svg',
-                      height: 600,
+                      height: 280,
                     ),
                   ),
                 ],
@@ -301,7 +321,7 @@ class _QuestionCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.fromLTRB(56, 14, 90, 14),
+            padding: const EdgeInsets.fromLTRB(24, 14, 122, 14),
             decoration: const BoxDecoration(
               color: Color(0xFF005F27),
               border: Border(bottom: BorderSide(color: AppColors.ink, width: 2)),
@@ -317,6 +337,10 @@ class _QuestionCard extends StatelessWidget {
               ),
             ),
           ),
+          // O texto da pergunta, com padding maior em cima e menor embaixo, para
+          // que o espaço embaixo seja ajustado dinamicamente para que a parte de
+          // baixo do cartão (as opções) fique sempre na mesma posição, mesmo que
+          // o texto da pergunta seja curto ou longo.
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
             child: Text(
@@ -330,8 +354,12 @@ class _QuestionCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppDimensions.spaceXl),
+          // O padding embaixo é grande para que o espaço vazio embaixo das opções
+          // seja ajustado dinamicamente, de acordo com o tamanho do texto da
+          // pergunta, para que a parte de baixo do cartão (as opções) fique sempre
+          // na mesma posição, mesmo que o texto da pergunta seja curto ou longo.
           Padding(
-            padding: const EdgeInsets.fromLTRB(6, 0, 6, 400),
+            padding: const EdgeInsets.fromLTRB(20, 0, 8, _cardExtraBottomSpace),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

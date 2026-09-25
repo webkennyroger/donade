@@ -38,15 +38,36 @@ class QuestionNumberBadge extends StatelessWidget {
               border: Border.all(color: AppColors.ink, width: 3),
               boxShadow: inkShadow(dx: 4, dy: 4),
             ),
-            child: Text(
-              '$number',
-              style: TextStyle(
-                fontFamily: 'NotoSans',
-                fontWeight: FontWeight.w700,
-                fontSize: size * 0.56,
-                color: AppColors.ink,
-                height: 1,
-              ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // A fonte só tem os pesos Regular/Bold cadastrados — não
+                // existe um peso "black" de verdade, então simulamos um
+                // traço mais grosso desenhando o contorno atrás do número.
+                Text(
+                  '$number',
+                  style: TextStyle(
+                    fontFamily: 'NotoSans',
+                    fontWeight: FontWeight.w700,
+                    fontSize: size * 0.62,
+                    height: 1,
+                    foreground: Paint()
+                      ..style = PaintingStyle.stroke
+                      ..strokeWidth = size * 0.09
+                      ..color = AppColors.ink,
+                  ),
+                ),
+                Text(
+                  '$number',
+                  style: TextStyle(
+                    fontFamily: 'NotoSans',
+                    fontWeight: FontWeight.w700,
+                    fontSize: size * 0.62,
+                    color: AppColors.ink,
+                    height: 1,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
