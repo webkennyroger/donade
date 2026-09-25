@@ -25,7 +25,7 @@ const _donade = 'assets/images/donade';
 // - Altura: a Dona Dê é ancorada via `top:` (não `bottom:`), então não se
 //   move quando `_cardExtraBottomSpace` muda.
 const _cardWidth = 340.0;
-const _cardExtraBottomSpace = 400.0;
+const _cardExtraBottomSpace = 360.0;
 
 /// Quanto tempo o cartão fica com a alternativa colorida antes da tela
 /// cheia de "Você acertou/errou" aparecer, e por quanto tempo ela fica.
@@ -222,8 +222,8 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
                   // assim ela não se move quando o espaço vazio embaixo das
                   // opções (o padding do `_QuestionCard`) for ajustado.
                   Positioned(
-                    top: 360,
-                    right: -30,
+                    top: 480,
+                    right: -50,
                     child: SvgPicture.asset(
                       state.answered
                           ? (isCorrect ? '$_donade/donade-acertou.svg' : '$_donade/donade-errou.svg')
@@ -315,7 +315,10 @@ class _QuestionCard extends StatelessWidget {
         border: Border.all(color: AppColors.ink, width: 2),
         boxShadow: inkShadow(),
       ),
-      clipBehavior: Clip.antiAlias,
+      // Sem recorte: as opções (mais abaixo) precisam poder passar da
+      // borda esquerda do cartão. O cabeçalho ganha o mesmo raio de canto
+      // do cartão pra continuar parecendo arredondado mesmo sem o recorte.
+      clipBehavior: Clip.none,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
@@ -324,6 +327,7 @@ class _QuestionCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(24, 14, 122, 14),
             decoration: const BoxDecoration(
               color: Color(0xFF005F27),
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(22), topRight: Radius.circular(22)),
               border: Border(bottom: BorderSide(color: AppColors.ink, width: 2)),
             ),
             child: const Text(
@@ -359,21 +363,31 @@ class _QuestionCard extends StatelessWidget {
           // pergunta, para que a parte de baixo do cartão (as opções) fique sempre
           // na mesma posição, mesmo que o texto da pergunta seja curto ou longo.
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 8, _cardExtraBottomSpace),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (var index = 0; index < options.length; index++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppDimensions.spaceLg),
-                    child: AnswerOption(
-                      label: options[index],
-                      optionLetter: String.fromCharCode(65 + index),
-                      state: _stateFor(index),
-                      onTap: () => onSelect(index),
-                    ),
-                  ),
-              ],
+            padding: const EdgeInsets.only(bottom: _cardExtraBottomSpace),
+            // Padding não aceita valores negativos, então o "passar da
+            // borda esquerda" é feito deslocando o desenho com Transform
+            // (não afeta o layout) e alargando a caixa pra compensar, pra
+            // a margem direita continuar exatamente nos 16px pedidos.
+            child: Transform.translate(
+              offset: const Offset(-20, 0),
+              child: SizedBox(
+                width: _cardWidth - 16 + 20,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var index = 0; index < options.length; index++)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppDimensions.spaceLg),
+                        child: AnswerOption(
+                          label: options[index],
+                          optionLetter: String.fromCharCode(65 + index),
+                          state: _stateFor(index),
+                          onTap: () => onSelect(index),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

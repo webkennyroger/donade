@@ -28,8 +28,8 @@ class AnswerOption extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 50,
-              height: 50,
+              width: 62,
+              height: 62,
               alignment: Alignment.center,
               decoration: const BoxDecoration(color: Color(0xFF6F6B67), shape: BoxShape.circle),
               child: Text(
@@ -37,6 +37,7 @@ class AnswerOption extends StatelessWidget {
                 style: const TextStyle(
                   fontFamily: 'NotoSans',
                   fontWeight: FontWeight.w900,
+                  fontSize: 28,
                   color: AppColors.white,
                 ),
               ),
