@@ -7,7 +7,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/animations/answer_feedback.dart';
 import '../../../../shared/widgets/ink_shadow.dart';
-import '../../../../shared/widgets/trophy_animation.dart';
 import '../../data/question.dart';
 import '../controllers/quiz_controller.dart';
 import '../widgets/answer_option.dart';
@@ -27,6 +26,14 @@ const _donade = 'assets/images/donade';
 //   move quando `_cardExtraBottomSpace` muda.
 const _cardWidth = 340.0;
 const _cardExtraBottomSpace = 340.0;
+
+// Altura MÍNIMA que todo cartão (pergunta ou resultado) tem que ter — é
+// isso que garante que o cartão de resultado fique do mesmo tamanho que o
+// de pergunta, mesmo tendo bem menos conteúdo (sem as opções de resposta).
+// Se o conteúdo de algum cartão precisar de mais espaço que isso, ele só
+// cresce normalmente (isso aqui é um piso, não um teto, então não corta
+// nem gera erro de "overflow").
+const _cardMinHeight = 820.0;
 
 // Quanto a pílula de resposta "vaza" pra fora de cada lado do cartão.
 // Zero = não vaza (fica só até a borda). Cada um é independente do outro.
@@ -150,7 +157,10 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
     }
 
     if (state.isFinished) {
-      return _QuizResultView(score: state.score, total: state.questions.length);
+      // `state.score` é em PONTOS (`kPointsPerCorrectAnswer` por acerto, ver
+      // quiz_controller.dart), não no número de acertos — por isso a divisão,
+      // pra tela de resultado mostrar quantas perguntas o usuário acertou.
+      return _QuizResultView(correctCount: state.score ~/ kPointsPerCorrectAnswer, total: state.questions.length);
     }
 
     if (_showFullScreenResult) {
@@ -363,6 +373,7 @@ class _QuestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(minHeight: _cardMinHeight),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -486,61 +497,199 @@ class _QuestionCard extends StatelessWidget {
 }
 
 class _QuizResultView extends StatelessWidget {
-  const _QuizResultView({required this.score, required this.total});
+  const _QuizResultView({required this.correctCount, required this.total});
 
-  final int score;
+  final int correctCount;
   final int total;
 
-  // Tamanho do troféu animado (raios, confete e brilhos escalam com ele).
-  // O botão embaixo usa essa mesma largura, em vez do padrão esticado, pra
-  // ficar do tamanho do conteúdo do troféu.
-  static const _trophySize = 420.0;
+  // Posição fixa da Dona Dê nessa tela: calibrada separadamente da tela de
+  // pergunta (`_donadeTop`) porque o cartão de resultado tem outra altura
+  // (sem as opções de resposta).
+  static const _resultDonadeTop = 460.0;
+
+  // Posição do risco decorativo SÓ dessa tela de resultado: regra própria,
+  // não usa os valores da tela de pergunta. Aqui ele fica ENCOSTADO na
+  // borda do cartão (right: 0), em vez de vazar pra fora como na bolha do
+  // número. Mude só esses dois valores pra ajustar, sem afetar mais nada.
+  static const _resultRiscoTop = -30.0;
+  static const _resultRiscoRight = -60.0;
+
+  void _goToStart(BuildContext context) => context.canPop() ? context.pop() : context.go('/');
+
+  // Pose da Dona Dê de acordo com o placar: errou tudo (0 acertos) usa a
+  // pose de erro, acertou tudo (todas as perguntas) usa a pose de acerto,
+  // e qualquer resultado no meio (só parte certo) usa a pose pensativa.
+  String get _donadePose {
+    if (correctCount == 0) return 'donade-errou';
+    if (correctCount == total) return 'donade-acertou';
+    return 'donade-pensando';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = MediaQuery.of(context).size.width >= AppDimensions.tabletBreakpoint;
+
     return Scaffold(
       backgroundColor: const Color(0xFFEDEDED),
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimensions.spaceLg),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.spaceLg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Header(onBack: () => _goToStart(context)),
+              const SizedBox(height: _headerToCardGap),
+              Expanded(
+                child: isTablet
+                    ? Center(child: SizedBox(width: _cardWidth, child: _buildBody(context)))
+                    : _buildBody(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          // Ver o comentário equivalente em `_QuizQuestionPageState._buildPhoneBody`:
+          // sem isso, o modo tablet recorta as decorações que vazam do cartão.
+          clipBehavior: Clip.none,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    bottom: _scaled(-30),
+                    left: _scaled(-80),
+                    child: SvgPicture.asset('$_decor/elemento-splash.svg', width: _scaled(200)),
+                  ),
+                  // Risco decorativo sozinho (sem bolha de número, essa tela
+                  // não numera pergunta): mesmo tamanho/ângulo de sempre
+                  // (`size * 0.6` com `size = _scaled(112)`, igual ao usado
+                  // atrás da bolha do número em `QuestionNumberBadge`). A
+                  // posição é regra SÓ dessa tela (`_resultRiscoTop`/`Right`,
+                  // não usa os valores da tela de pergunta): aqui ele fica
+                  // ENCOSTADO na borda do cartão, sem o círculo por cima.
+                  // Vem ANTES do `_ResultCard` na lista de propósito: no
+                  // `Stack`, quem vem depois é desenhado por cima, então
+                  // isso deixa o risco ATRÁS do cartão (em vez de por cima).
+                  Positioned(
+                    top: _scaled(_resultRiscoTop),
+                    right: _scaled(_resultRiscoRight),
+                    child: Transform.rotate(
+                      angle: 0.5,
+                      child: SvgPicture.asset('$_decor/elemento-risco.svg', width: _scaled(112) * 0.6),
+                    ),
+                  ),
+                  _ResultCard(correctCount: correctCount),
+                  Positioned(
+                    top: _scaled(-10),
+                    left: _scaled(-10),
+                    child: SvgPicture.asset('$_decor/circulos.svg', width: _scaled(44)),
+                  ),
+                  // Mesma posição/tamanho do "padrão" usado na tela de
+                  // pergunta (ver `_buildPhoneBody`).
+                  Positioned(
+                    top: _scaled(130),
+                    right: _scaled(-80),
+                    child: SvgPicture.asset('$_decor/sparkle_small.svg', width: _scaled(28)),
+                  ),
+                  Positioned(
+                    top: _scaled(85),
+                    right: _scaled(-70),
+                    child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: _scaled(52)),
+                  ),
+                  Positioned(
+                    top: _resultDonadeTop,
+                    right: _scaled(-180),
+                    child: SvgPicture.asset('$_donade/$_donadePose.svg', height: _scaled(780)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ResultCard extends StatelessWidget {
+  const _ResultCard({required this.correctCount});
+
+  final int correctCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _cardWidth,
+      constraints: const BoxConstraints(minHeight: _cardMinHeight),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.ink, width: 2),
+        boxShadow: inkShadow(),
+      ),
+      clipBehavior: Clip.none,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 14, 24, 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFF005F27),
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(22), topRight: Radius.circular(22)),
+              border: Border(bottom: BorderSide(color: AppColors.ink, width: 2)),
+            ),
+            child: const Text(
+              'RESULTADO',
+              style: TextStyle(fontFamily: 'NotoSans', color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(20, _scaled(40), 20, _scaled(40)),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                const TrophyAnimation(size: _trophySize),
-                const SizedBox(height: AppDimensions.spaceLg),
+                SvgPicture.asset('$_decor/trofeu.svg', height: _scaled(250)),
+                SizedBox(height: _scaled(40)),
+                const Text(
+                  'Você acertou',
+                  style: TextStyle(
+                    fontFamily: 'NotoSans', 
+                    fontSize: 40, 
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.ink),
+                ),
                 Text(
-                  'VOCÊ FEZ $score PONTOS EM $total PERGUNTAS',
+                  '$correctCount',
                   style: const TextStyle(
                     fontFamily: 'NotoSans',
-                    fontSize: 24,
-
-                    color: AppColors.ink,
                     fontWeight: FontWeight.w900,
+                    fontSize: 300,
+                    height: 1,
+                    color: Color(0xFF005F27),
                   ),
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: AppDimensions.spaceXl),
-                SizedBox(
-                  width: _trophySize,
-                  height: AppDimensions.buttonHeight,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusPill),
-                        side: const BorderSide(color: AppColors.ink, width: 2),
-                      ),
-                    ),
-                    onPressed: () => context.canPop() ? context.pop() : context.go('/'),
-                    child: const Text('Voltar para o início'),
-                  ),
+                const Text(
+                  'perguntas!',
+                  style: TextStyle(
+                    fontFamily: 'NotoSans',
+                    fontSize: 30,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.ink),
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
