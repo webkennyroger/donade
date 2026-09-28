@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/animations/answer_feedback.dart';
 import '../../../../shared/widgets/ink_shadow.dart';
+import '../../../../shared/widgets/trophy_animation.dart';
 import '../../data/question.dart';
 import '../controllers/quiz_controller.dart';
 import '../widgets/answer_option.dart';
@@ -490,6 +491,11 @@ class _QuizResultView extends StatelessWidget {
   final int score;
   final int total;
 
+  // Tamanho do troféu animado (raios, confete e brilhos escalam com ele).
+  // O botão embaixo usa essa mesma largura, em vez do padrão esticado, pra
+  // ficar do tamanho do conteúdo do troféu.
+  static const _trophySize = 420.0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -501,26 +507,35 @@ class _QuizResultView extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SvgPicture.asset('$_decor/trofeu.svg', height: 140),
+                const TrophyAnimation(size: _trophySize),
                 const SizedBox(height: AppDimensions.spaceLg),
                 Text(
-                  'Você fez $score pontos em $total perguntas',
-                  style: const TextStyle(fontFamily: 'NotoSans', fontSize: 16, color: AppColors.ink),
+                  'VOCÊ FEZ $score PONTOS EM $total PERGUNTAS',
+                  style: const TextStyle(
+                    fontFamily: 'NotoSans',
+                    fontSize: 24,
+
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w900,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppDimensions.spaceXl),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.yellow,
-                    foregroundColor: AppColors.ink,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusPill),
-                      side: const BorderSide(color: AppColors.ink, width: 2),
+                SizedBox(
+                  width: _trophySize,
+                  height: AppDimensions.buttonHeight,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppDimensions.radiusPill),
+                        side: const BorderSide(color: AppColors.ink, width: 2),
+                      ),
                     ),
-                    minimumSize: const Size.fromHeight(AppDimensions.buttonHeight),
+                    onPressed: () => context.canPop() ? context.pop() : context.go('/'),
+                    child: const Text('Voltar para o início'),
                   ),
-                  onPressed: () => context.canPop() ? context.pop() : context.go('/'),
-                  child: const Text('Voltar para o início'),
                 ),
               ],
             ),
