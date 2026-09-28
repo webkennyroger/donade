@@ -25,7 +25,44 @@ const _donade = 'assets/images/donade';
 // - Altura: a Dona Dê é ancorada via `top:` (não `bottom:`), então não se
 //   move quando `_cardExtraBottomSpace` muda.
 const _cardWidth = 340.0;
-const _cardExtraBottomSpace = 360.0;
+const _cardExtraBottomSpace = 340.0;
+
+// Quanto a pílula de resposta "vaza" pra fora de cada lado do cartão.
+// Zero = não vaza (fica só até a borda). Cada um é independente do outro.
+// Isso só muda o TAMANHO da pílula, não a posição.
+const _pillLeftBleed = 10.0;
+const _pillRightBleed = 80.0;
+
+// Move a pílula sem mudar o tamanho dela: positivo desce/vai pra direita,
+// negativo sobe/vai pra esquerda.
+const _pillOffsetX = 20.0;
+const _pillOffsetY = 0.0;
+
+// Espaço entre o cabeçalho ("DESAFIO DA Dona Dê") e o cartão/bolha do
+// número, embaixo. Isolado do resto (não usa `AppDimensions.spaceLg`) pra
+// poder aumentar sem afetar o espaçamento de mais nada na tela.
+const _headerToCardGap = 48.0;
+
+// Número máximo de alternativas entre todas as perguntas (a maioria tem 4;
+// só duas têm 3). O cartão sempre reserva espaço para esse máximo — nas
+// perguntas com menos alternativas, o espaço restante fica em branco (ver
+// `_QuestionCard`) — assim a base (cabeçalho, cartão, Dona Dê) fica
+// IDÊNTICA em todas as perguntas; só o texto muda.
+const _maxOptionsPerQuestion = 3;
+
+// Posição fixa da Dona Dê. Como o cartão sempre tem a altura calibrada
+// para `_maxOptionsPerQuestion`, esse valor não precisa mudar por pergunta.
+const _donadeTop = 600.0;
+
+// Todos os tamanhos/posições horizontais dos elementos decorativos abaixo
+// foram calibrados visualmente com `_cardWidth` em 340 (a "largura de
+// referência"). Em vez de escrever pixels fixos, cada valor é
+// `pixelCalibrado / _referenceWidth * _cardWidth` — assim, se `_cardWidth`
+// mudar, tudo escala junto, em vez de ficar desproporcional. (Técnica
+// emprestada de um protótipo que posicionava elementos como fração de um
+// canvas de referência, em vez de pixel fixo.)
+const _referenceWidth = 340.0;
+double _scaled(double pixelAtReferenceWidth) => pixelAtReferenceWidth / _referenceWidth * _cardWidth;
 
 /// Quanto tempo o cartão fica com a alternativa colorida antes da tela
 /// cheia de "Você acertou/errou" aparecer, e por quanto tempo ela fica.
@@ -135,7 +172,7 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _Header(onBack: _confirmExit),
-              const SizedBox(height: AppDimensions.spaceLg),
+              const SizedBox(height: _headerToCardGap),
               Expanded(
                 // Em telas largas, mantemos o mesmo cartão de celular,
                 // só centralizado, em vez de reorganizar o conteúdo.
@@ -159,11 +196,23 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
-          // Centraliza verticalmente quando o cartão é mais baixo que a
-          // tela (tablets, perguntas curtas); ainda rola se for mais alto.
+          // `clipBehavior: Clip.none` é essencial em modo tablet: lá em cima
+          // o cartão fica dentro de um SizedBox estreito (`_cardWidth`), e
+          // por padrão essa área de rolagem recorta tudo que passa dessa
+          // largura — cortando a bolha do número, as estrelas, a pílula que
+          // vaza e a Dona Dê bem na borda do cartão.
+          clipBehavior: Clip.none,
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
+            // Alinhado no TOPO (não centralizado) de propósito: perguntas
+            // com 4 opções deixam o cartão mais alto que perguntas com 3.
+            // Se centralizasse verticalmente, esse cartão mais alto
+            // "empurraria" o topo (cabeçalho, bolha do número, estrelas)
+            // pra uma posição diferente em cada pergunta. Alinhando no
+            // topo, o cabeçalho sempre começa no mesmo lugar; só a base
+            // (opções + Dona Dê) varia, e a tela rola se precisar.
+            child: Align(
+              alignment: Alignment.topCenter,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -171,9 +220,9 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
                     // O splash de bolinhas atrás do cartão, que só aparece antes de
                     // responder. Ele é grande e fica parcialmente fora da tela.
                     Positioned(
-                      bottom: -30,
-                      left: -200,
-                      child: SvgPicture.asset('$_decor/elemento-splash.svg', width: 200),
+                      bottom: _scaled(-30),
+                      left: _scaled(-80),
+                      child: SvgPicture.asset('$_decor/elemento-splash.svg', width: _scaled(200)),
                     ),
                     // O cartão da pergunta, com o número da pergunta e as opções.
                   _QuestionCard(
@@ -187,48 +236,52 @@ class _QuizQuestionPageState extends ConsumerState<QuizQuestionPage> {
                   // Padrão de bolinhas saindo do canto superior esquerdo do
                   // cartão, atrás da barra verde.
                   Positioned(
-                    top: -10,
-                    left: -10,
-                    child: SvgPicture.asset('$_decor/circulos.svg', width: 44),
+                    top: _scaled(-10),
+                    left: _scaled(-10),
+                    child: SvgPicture.asset('$_decor/circulos.svg', width: _scaled(44)),
                   ),
                   // O número da pergunta fica no canto superior direito do cartão,
                   // mas fora do cartão, em cima da barra verde. A posição é
                   // ajustada para que o círculo fique centrado na barra verde.
                   Positioned(
-                    top: -30,
-                    right: -60,
-                    child: QuestionNumberBadge(number: state.currentIndex + 1, size: 112),
+                    top: _scaled(-30),
+                    right: _scaled(-60),
+                    child: QuestionNumberBadge(number: state.currentIndex + 1, size: _scaled(112)),
                   ),
                   // A pequena vem primeiro (fica atrás); a maior vem depois
                   // (fica na frente, por cima), as duas do lado de fora do
                   // cartão, em diagonal a partir do círculo do número.
                   Positioned(
-                    top: 140,
-                    right: -50,
-                    child: SvgPicture.asset('$_decor/sparkle_small.svg', width: 18),
+                    top: _scaled(130),
+                    right: _scaled(-80),
+                    child: SvgPicture.asset('$_decor/sparkle_small.svg', width: _scaled(28)),
                   ),
                   Positioned(
-                    top: 100,
-                    right: -50,
-                    child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: 34),
+                    top: _scaled(85),
+                    right: _scaled(-70),
+                    child: SvgPicture.asset('$_decor/elemento-estrela.svg', width: _scaled(52)),
                   ),
                   if (state.answered)
                     Positioned(
-                      bottom: -20,
-                      left: -16,
+                      bottom: _scaled(30),
+                      left: _scaled(20),
                       child: ResultBadge(isCorrect: isCorrect),
                     ),
-                  // Ancorada a partir do topo (não do fundo) de propósito:
-                  // assim ela não se move quando o espaço vazio embaixo das
-                  // opções (o padding do `_QuestionCard`) for ajustado.
+                  // Ancorada a partir do topo (não do fundo) de propósito: assim
+                  // ela não se move quando o espaço vazio embaixo das opções (o
+                  // padding do `_QuestionCard`) for ajustado. O `top` fica em
+                  // pixel fixo (não escala com a largura) porque depende da
+                  // altura do texto da pergunta, não da largura do cartão.
+                  // Pode ficar fixo porque o cartão sempre reserva espaço para
+                  // `_maxOptionsPerQuestion` alternativas (ver `_QuestionCard`).
                   Positioned(
-                    top: 480,
-                    right: -50,
+                    top: _donadeTop,
+                    right: _scaled(-180),
                     child: SvgPicture.asset(
                       state.answered
                           ? (isCorrect ? '$_donade/donade-acertou.svg' : '$_donade/donade-errou.svg')
                           : '$_donade/donade-pensando.svg',
-                      height: 280,
+                      height: _scaled(780),
                     ),
                   ),
                 ],
@@ -364,28 +417,63 @@ class _QuestionCard extends StatelessWidget {
           // na mesma posição, mesmo que o texto da pergunta seja curto ou longo.
           Padding(
             padding: const EdgeInsets.only(bottom: _cardExtraBottomSpace),
-            // Padding não aceita valores negativos, então o "passar da
-            // borda esquerda" é feito deslocando o desenho com Transform
-            // (não afeta o layout) e alargando a caixa pra compensar, pra
-            // a margem direita continuar exatamente nos 16px pedidos.
+            // O cartão usa `CrossAxisAlignment.stretch`, que trava a largura
+            // de qualquer filho na largura do cartão — um SizedBox mais
+            // largo aqui dentro seria cortado de volta, sem aviso nenhum.
+            // `OverflowBox` deixa o filho ser maior sem cortar E sem gerar
+            // aviso de "overflow" (é literalmente pra isso que ele existe).
+            // `IntrinsicHeight` só está aqui porque estamos dentro de uma
+            // área de rolagem (altura "infinita" disponível) — sem ele, o
+            // OverflowBox não sabe qual altura usar. `alignment: centerLeft`
+            // mantém a borda esquerda no lugar (posição não muda) e deixa o
+            // excesso vazar só pra direita.
+            // Transform.translate só desloca o desenho na tela — não muda
+            // nenhum tamanho, nenhuma largura, nada de layout. É só isso
+            // que controla `_pillOffsetX`/`_pillOffsetY`.
             child: Transform.translate(
-              offset: const Offset(-20, 0),
-              child: SizedBox(
-                width: _cardWidth - 16 + 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var index = 0; index < options.length; index++)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppDimensions.spaceLg),
-                        child: AnswerOption(
-                          label: options[index],
-                          optionLetter: String.fromCharCode(65 + index),
-                          state: _stateFor(index),
-                          onTap: () => onSelect(index),
-                        ),
-                      ),
-                  ],
+              offset: Offset(_scaled(_pillOffsetX), _pillOffsetY),
+              child: IntrinsicHeight(
+                child: OverflowBox(
+                  alignment: Alignment.centerLeft,
+                  maxWidth: _cardWidth + _scaled(_pillLeftBleed) + _scaled(_pillRightBleed),
+                  child: SizedBox(
+                    width: _cardWidth + _scaled(_pillLeftBleed) + _scaled(_pillRightBleed),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Vai até `_maxOptionsPerQuestion`, não só até
+                        // `options.length`: perguntas com menos alternativas
+                        // (3, em vez de 4) preenchem o restante com um
+                        // espaço invisível do mesmo tamanho de uma opção
+                        // real (via `Opacity`+`IgnorePointer`, não um
+                        // número de pixels chutado), pra o cartão ter
+                        // sempre a mesma altura, e a Dona Dê poder usar uma
+                        // posição fixa em qualquer pergunta.
+                        for (var index = 0; index < _maxOptionsPerQuestion; index++)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: AppDimensions.spaceLg),
+                            child: index >= options.length
+                                ? IgnorePointer(
+                                    child: Opacity(
+                                      opacity: 0,
+                                      child: AnswerOption(
+                                        label: '',
+                                        optionLetter: '',
+                                        state: AnswerState.idle,
+                                        onTap: () {},
+                                      ),
+                                    ),
+                                  )
+                                : AnswerOption(
+                              label: options[index],
+                              optionLetter: String.fromCharCode(65 + index),
+                              state: _stateFor(index),
+                              onTap: () => onSelect(index),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

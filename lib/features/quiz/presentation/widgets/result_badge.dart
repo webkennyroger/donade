@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/widgets/ink_shadow.dart';
+
+const _decor = 'assets/images/decorations';
 
 /// Selo "VOCÊ ACERTOU!"/"VOCÊ ERROU!" que aparece no canto do cartão de
 /// pergunta assim que o usuário responde, no lugar do splash decorativo.
@@ -10,6 +13,11 @@ class ResultBadge extends StatelessWidget {
 
   final bool isCorrect;
 
+  // Tamanho do círculo do selo. `acertou.svg` já é o círculo completo
+  // (verde, com o check); `errou.svg` é só o "X" branco, então continua
+  // sendo desenhado por cima de um círculo vermelho feito aqui mesmo.
+  static const _circleSize = 44.0;
+
   @override
   Widget build(BuildContext context) {
     final color = isCorrect ? AppColors.primary : AppColors.error;
@@ -17,18 +25,21 @@ class ResultBadge extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 44,
-          height: 44,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.ink, width: 2),
-            boxShadow: inkShadow(dx: 3, dy: 3),
+        if (isCorrect)
+          SvgPicture.asset('$_decor/acertou.svg', width: _circleSize, height: _circleSize)
+        else
+          Container(
+            width: _circleSize,
+            height: _circleSize,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.ink, width: 2),
+              boxShadow: inkShadow(dx: 3, dy: 3),
+            ),
+            child: SvgPicture.asset('$_decor/errou.svg', width: 22, height: 22),
           ),
-          child: Icon(isCorrect ? Icons.check : Icons.close, color: color, size: 26),
-        ),
         const SizedBox(height: AppDimensions.spaceXs),
         Text(
           isCorrect ? 'VOCÊ\nACERTOU!' : 'VOCÊ\nERROU!',

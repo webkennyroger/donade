@@ -11,6 +11,10 @@ class QuestionNumberBadge extends StatelessWidget {
   final int number;
   final double size;
 
+  // Ângulo do risco decorativo (em radianos). Positivo = gira pra direita
+  // (sentido horário); negativo = gira pra esquerda.
+  static const _riscoRotation = 0.5;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -21,11 +25,14 @@ class QuestionNumberBadge extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Positioned(
-            top: -size * 0.35,
-            right: -6,
-            child: SvgPicture.asset(
-              'assets/images/decorations/elemento-risco.svg',
-              width: size * 0.6,
+            top: -10.0,
+            right: -45,
+            child: Transform.rotate(
+              angle: _riscoRotation,
+              child: SvgPicture.asset(
+                'assets/images/decorations/elemento-risco.svg',
+                width: size * 0.6,
+              ),
             ),
           ),
           Container(

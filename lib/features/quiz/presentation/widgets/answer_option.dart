@@ -27,6 +27,10 @@ class AnswerOption extends StatelessWidget {
         state: state,
         child: Row(
           children: [
+            // Círculo cinza da letra (A/B/C). Aumentar `width`/`height` aqui
+            // também deixa a pílula mais alta (a altura da pílula é definida
+            // pelo maior item da Row + o padding do AnswerFeedback, no
+            // arquivo answer_feedback.dart).
             Container(
               width: 62,
               height: 62,
@@ -35,6 +39,7 @@ class AnswerOption extends StatelessWidget {
               child: Text(
                 optionLetter,
                 style: const TextStyle(
+                  // Tamanho da letra (A/B/C) dentro do círculo.
                   fontFamily: 'NotoSans',
                   fontWeight: FontWeight.w900,
                   fontSize: 28,
@@ -47,6 +52,7 @@ class AnswerOption extends StatelessWidget {
               child: Text(
                 label,
                 style: TextStyle(
+                  // Tamanho do texto da resposta ("De 90.000 a 100.000").
                   fontFamily: 'NotoSans',
                   fontSize: 22,
                   color: _isRevealed ? AppColors.white : AppColors.ink,

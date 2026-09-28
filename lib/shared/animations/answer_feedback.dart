@@ -32,6 +32,10 @@ class AnswerFeedback extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
+      // Espaço em volta do conteúdo da pílula (o círculo + o texto, vindos de
+      // answer_option.dart). Aumentar `vertical` deixa a pílula mais alta;
+      // aumentar `horizontal` deixa mais larga (some do card_width
+      // disponível para o texto, então o texto pode quebrar linha).
       padding: const EdgeInsets.symmetric(
         horizontal: AppDimensions.spaceMd,
         vertical: AppDimensions.spaceMd,
